@@ -1,6 +1,6 @@
 """
-MenuMap - Web API
-FastAPI backend for the MenuMap web app
+CampusBite - Web API
+FastAPI backend for the CampusBite web app
 """
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +10,7 @@ from pathlib import Path
 from matcher import MenuMatcher
 from ai_coach import get_recommendation
 
-app = FastAPI(title="MenuMap", description="AI-powered campus dining assistant")
+app = FastAPI(title="CampusBite", description="AI-powered campus dining assistant")
 
 # Initialize matcher
 matcher = MenuMatcher()

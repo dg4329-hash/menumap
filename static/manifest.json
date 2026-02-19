@@ -1,6 +1,6 @@
 {
-  "name": "MenuMap",
-  "short_name": "MenuMap",
+  "name": "CampusBite",
+  "short_name": "CampusBite",
   "description": "AI-powered campus dining assistant",
   "start_url": "/",
   "display": "standalone",

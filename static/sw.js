@@ -1,5 +1,5 @@
-// MenuMap Service Worker
-const CACHE_NAME = 'menumap-v1';
+// CampusBite Service Worker
+const CACHE_NAME = 'campusbite-v1';
 
 // Install - cache basic assets
 self.addEventListener('install', (event) => {

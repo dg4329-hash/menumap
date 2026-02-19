@@ -1,5 +1,5 @@
 """
-MenuMap - AI Nutrition Coach with Function Calling
+CampusBite - AI Nutrition Coach with Function Calling
 Uses GPT-4o-mini with tools to query the menu database intelligently
 """
 import os
@@ -10,7 +10,7 @@ from tools import TOOL_DEFINITIONS, TOOL_FUNCTIONS
 # Initialize OpenAI client
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-SYSTEM_PROMPT = """You are MenuMap, a friendly and knowledgeable nutrition coach for NYU students. You help them find the perfect meal based on their cravings, dietary needs, and nutritional goals.
+SYSTEM_PROMPT = """You are CampusBite, a friendly and knowledgeable nutrition coach for college students. You help them find the perfect meal based on their cravings, dietary needs, and nutritional goals.
 
 Your personality:
 - Casual, friendly tone (you're talking to college students)
