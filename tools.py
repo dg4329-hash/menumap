@@ -5,7 +5,14 @@ Functions that the AI can call to search the menu database
 import sqlite3
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+# EST timezone (UTC-5)
+EST = timezone(timedelta(hours=-5))
+
+def _now_est():
+    """Get current datetime in EST"""
+    return datetime.now(EST)
 
 DB_PATH = Path(__file__).parent / "menumap.db"
 
@@ -167,7 +174,7 @@ DINING_HOURS = {
 
 def _get_day_type() -> str:
     """Get the current day type for hours lookup"""
-    day = datetime.now().weekday()  # 0=Monday, 6=Sunday
+    day = _now_est().weekday()  # 0=Monday, 6=Sunday
     if day < 4:  # Mon-Thu
         return "weekday"
     elif day == 4:  # Friday
@@ -186,7 +193,7 @@ def get_current_time() -> dict:
     Returns:
         Dict with current time info
     """
-    now = datetime.now()
+    now = _now_est()
     day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
     return {
@@ -292,7 +299,7 @@ def get_location_hours(location: str) -> dict:
     Returns:
         Dict with location name, today's hours, and current time context
     """
-    now = datetime.now()
+    now = _now_est()
     day_type = _get_day_type()
     day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
@@ -338,7 +345,7 @@ def get_all_hours() -> dict:
     Returns:
         Dict with all locations and their hours for today
     """
-    now = datetime.now()
+    now = _now_est()
     day_type = _get_day_type()
     day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
