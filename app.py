@@ -109,6 +109,39 @@ async def stats():
     return matcher.get_stats()
 
 
+@app.get("/api/debug")
+async def debug():
+    """Debug endpoint to check database and environment"""
+    import os
+    from pathlib import Path
+
+    db_path = Path(__file__).parent / "menumap.db"
+
+    result = {
+        "db_exists": db_path.exists(),
+        "db_path": str(db_path),
+        "openai_key_set": bool(os.environ.get("OPENAI_API_KEY")),
+        "openai_key_prefix": os.environ.get("OPENAI_API_KEY", "")[:10] + "..." if os.environ.get("OPENAI_API_KEY") else None,
+    }
+
+    # Test database query
+    if db_path.exists():
+        try:
+            import sqlite3
+            conn = sqlite3.connect(db_path)
+            c = conn.cursor()
+            c.execute("SELECT COUNT(*) FROM menu_items")
+            result["db_item_count"] = c.fetchone()[0]
+            c.execute("SELECT MAX(date) FROM menu_items")
+            result["db_latest_date"] = c.fetchone()[0]
+            conn.close()
+            result["db_status"] = "OK"
+        except Exception as e:
+            result["db_status"] = f"ERROR: {str(e)}"
+
+    return result
+
+
 @app.get("/api/locations")
 async def locations():
     """Get all dining locations"""
