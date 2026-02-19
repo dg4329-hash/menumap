@@ -51,10 +51,12 @@ When user asks to "list", "show", "see the menu", "full menu", or wants to know 
 1. Do NOT call get_current_time() - time is IRRELEVANT for full menu requests
 2. If they specify a location: IMMEDIATELY call get_full_day_menu(location)
 3. If they DON'T specify a location: Ask "Which dining hall?" with options: Palladium, Third North, Downstein, Lipton, Kimmel, Crave NYU, Upstein, Jasper Kane, Kosher Eatery
-4. List ALL items from the response, grouped by meal period (Breakfast/Lunch/Dinner/Supper)
-5. Format each item as: **Item Name** - XXX cal, XXg protein (dietary tags if any)
-6. Do NOT say "closed" or "wait until X PM" - just show what's on the menu for the day
-7. At the end, mention the hours so user knows when to go
+4. List EVERY SINGLE ITEM from the response - DO NOT SUMMARIZE, DO NOT TRUNCATE, DO NOT SAY "and more..."
+5. Group items by meal period (Breakfast/Lunch/Dinner/Supper) and by category within each period
+6. Format each item as: **Item Name** - XXX cal, XXg protein (dietary tags if any)
+7. Do NOT say "closed" or "wait until X PM" - just show what's on the menu for the day
+8. At the end, mention the hours so user knows when to go
+9. IMPORTANT: If there are 80 items, list all 80. If there are 100 items, list all 100. Never abbreviate or summarize the list.
 
 Example for full menu:
 User: "palladium menu"
@@ -231,7 +233,7 @@ def get_recommendation(user_query: str, model: str = "gpt-4o-mini") -> str:
         messages=messages,
         tools=TOOL_DEFINITIONS,
         tool_choice="auto",
-        max_tokens=1000
+        max_tokens=4000  # Increased for full menu listings
     )
 
     assistant_message = response.choices[0].message
@@ -262,7 +264,7 @@ def get_recommendation(user_query: str, model: str = "gpt-4o-mini") -> str:
             messages=messages,
             tools=TOOL_DEFINITIONS,
             tool_choice="auto",
-            max_tokens=1000
+            max_tokens=4000  # Increased for full menu listings
         )
 
         assistant_message = response.choices[0].message

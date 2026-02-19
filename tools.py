@@ -740,7 +740,7 @@ def get_full_day_menu(location: str) -> dict:
 
     date = _get_current_date()
 
-    # Get all items for this location today
+    # Get all items for this location today (exclude small ingredients < 80 cal)
     query = """
         SELECT
             mi.name,
@@ -752,6 +752,7 @@ def get_full_day_menu(location: str) -> dict:
         FROM menu_items mi
         JOIN locations l ON mi.location_id = l.id
         WHERE mi.date = ? AND LOWER(l.name) LIKE LOWER(?)
+            AND mi.calories >= 80
         ORDER BY mi.period, mi.category, mi.name
     """
 
