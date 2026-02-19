@@ -327,6 +327,49 @@
             font-weight: 600;
         }
 
+        /* Response Formatting */
+        .message.assistant ul {
+            margin: 8px 0;
+            padding-left: 18px;
+        }
+
+        .message.assistant li {
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+
+        .message.assistant .menu-header {
+            font-weight: 600;
+            color: var(--primary);
+            margin: 10px 0 6px 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .message.assistant .menu-header:first-child {
+            margin-top: 0;
+        }
+
+        .message.assistant .total-line {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(99, 102, 241, 0.04));
+            border-left: 3px solid var(--primary);
+            padding: 8px 10px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+            font-weight: 500;
+        }
+
+        .message.assistant .location-tag {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
         /* Typing Indicator */
         .typing {
             display: flex;
@@ -783,9 +826,48 @@
 
         // Format markdown-like response
         function formatResponse(text) {
+            // Handle bold
             text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            const paragraphs = text.split('\n\n').filter(p => p.trim());
-            return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+
+            // Handle headers (### Header)
+            text = text.replace(/^###\s*(.+)$/gm, '<div class="menu-header">$1</div>');
+
+            // Handle Total: lines - make them stand out
+            text = text.replace(/^(Total:?.*)$/gm, '<div class="total-line">$1</div>');
+
+            // Handle bullet points
+            const lines = text.split('\n');
+            let result = '';
+            let inList = false;
+
+            for (let line of lines) {
+                const trimmed = line.trim();
+
+                if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+                    if (!inList) {
+                        result += '<ul>';
+                        inList = true;
+                    }
+                    result += `<li>${trimmed.substring(2)}</li>`;
+                } else {
+                    if (inList) {
+                        result += '</ul>';
+                        inList = false;
+                    }
+                    if (trimmed) {
+                        // Check if it's already a formatted element
+                        if (trimmed.startsWith('<div')) {
+                            result += trimmed;
+                        } else {
+                            result += `<p>${trimmed}</p>`;
+                        }
+                    }
+                }
+            }
+
+            if (inList) result += '</ul>';
+
+            return result;
         }
 
         // Add message to chat
@@ -846,7 +928,7 @@
                 hideTyping();
                 const err = document.createElement('div');
                 err.className = 'error';
-                err.textContent = 'Something went wrong. Try again.';
+                err.textContent = "Couldn't reach the kitchen right now. Give it another shot!";
                 chat.appendChild(err);
             } finally {
                 sendBtn.disabled = false;
