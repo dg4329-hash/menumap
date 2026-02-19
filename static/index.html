@@ -201,6 +201,46 @@
             flex-shrink: 0;
         }
 
+        /* Chat Header with Clear Button */
+        .chat-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 6px 14px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .clear-chat-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 10px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .clear-chat-btn:hover {
+            color: #ef4444;
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .clear-chat-btn:active {
+            transform: scale(0.96);
+        }
+
+        .clear-chat-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
         /* Chat Area */
         .chat {
             flex: 1;
@@ -721,6 +761,16 @@
                 </div>
             </div>
 
+            <!-- Chat Header with Clear Button -->
+            <div class="chat-header">
+                <button class="clear-chat-btn" id="clearChat" title="Clear conversation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14"/>
+                    </svg>
+                    Clear
+                </button>
+            </div>
+
             <!-- Chat Area -->
             <div class="chat" id="chat">
                 <!-- Welcome State -->
@@ -776,6 +826,7 @@
 
         let isFirstMessage = true;
         let selectedUniversity = localStorage.getItem('selectedUniversity');
+        let conversationHistory = [];  // Track conversation for context
 
         // University data
         const universities = [
@@ -915,7 +966,10 @@
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: query })
+                    body: JSON.stringify({
+                        message: query,
+                        history: conversationHistory  // Send conversation history
+                    })
                 });
 
                 hideTyping();
@@ -923,6 +977,16 @@
                 if (!response.ok) throw new Error('Failed');
 
                 const data = await response.json();
+
+                // Store messages in history for context
+                conversationHistory.push({ role: 'user', content: query });
+                conversationHistory.push({ role: 'assistant', content: data.response });
+
+                // Keep only last 10 messages to prevent memory issues
+                if (conversationHistory.length > 10) {
+                    conversationHistory = conversationHistory.slice(-10);
+                }
+
                 addMessage(data.response, 'assistant');
             } catch (error) {
                 hideTyping();
@@ -949,6 +1013,22 @@
         // Quick buttons
         document.querySelectorAll('.quick-btn, .suggestion').forEach(btn => {
             btn.addEventListener('click', () => sendMessage(btn.dataset.query));
+        });
+
+        // Clear chat button
+        document.getElementById('clearChat').addEventListener('click', () => {
+            // Clear conversation history
+            conversationHistory = [];
+
+            // Remove all messages from chat (keep welcome)
+            const messages = chat.querySelectorAll('.message, .error');
+            messages.forEach(msg => msg.remove());
+
+            // Show welcome again
+            welcome.classList.remove('hidden');
+            isFirstMessage = true;
+
+            input.focus();
         });
 
         // Focus input only if main app is visible

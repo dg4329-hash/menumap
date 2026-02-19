@@ -211,21 +211,29 @@ def execute_tool_call(tool_name: str, arguments: dict) -> str:
         return json.dumps({"error": str(e)})
 
 
-def get_recommendation(user_query: str, model: str = "gpt-4o-mini") -> str:
+def get_recommendation(user_query: str, model: str = "gpt-4o-mini", history: list = None) -> str:
     """
     Get an AI-powered meal recommendation using function calling.
 
     Args:
         user_query: Natural language query from user
         model: OpenAI model to use
+        history: Previous conversation messages [{"role": "user/assistant", "content": "..."}]
 
     Returns:
         Natural language recommendation
     """
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": user_query}
-    ]
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    # Add conversation history if provided (limit to last 10 messages to save tokens)
+    if history:
+        for msg in history[-10:]:
+            # Skip malformed messages
+            if "role" in msg and "content" in msg:
+                messages.append({"role": msg["role"], "content": msg["content"]})
+
+    # Add current user message
+    messages.append({"role": "user", "content": user_query})
 
     # First call - LLM decides what tools to use
     response = client.chat.completions.create(

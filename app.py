@@ -78,8 +78,14 @@ async def search(request: SearchRequest):
     )
 
 
+class ChatMessage(BaseModel):
+    role: str = ""  # "user" or "assistant"
+    content: str = ""  # Message content (optional for graceful handling)
+
+
 class ChatRequest(BaseModel):
     message: str
+    history: list[ChatMessage] = []  # Previous conversation messages
 
 
 class ChatResponse(BaseModel):
@@ -94,7 +100,9 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty")
 
     try:
-        response = get_recommendation(request.message)
+        # Convert history to format expected by get_recommendation
+        history = [{"role": msg.role, "content": msg.content} for msg in request.history]
+        response = get_recommendation(request.message, history=history)
         return ChatResponse(
             message=request.message,
             response=response
