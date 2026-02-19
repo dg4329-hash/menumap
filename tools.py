@@ -723,6 +723,70 @@ def get_low_calorie_items(
     )
 
 
+def get_full_day_menu(location: str) -> dict:
+    """
+    Get the FULL menu for a dining location across ALL meal periods.
+    Use this when user wants to see everything available at a location today,
+    NOT for meal recommendations.
+
+    Args:
+        location: Dining hall name (e.g., "Palladium", "Third North")
+
+    Returns:
+        Dict with items grouped by meal period, plus location hours
+    """
+    conn = _get_connection()
+    c = conn.cursor()
+
+    date = _get_current_date()
+
+    # Get all items for this location today
+    query = """
+        SELECT
+            mi.name,
+            mi.period,
+            mi.category,
+            mi.calories,
+            mi.protein,
+            mi.dietary_tags
+        FROM menu_items mi
+        JOIN locations l ON mi.location_id = l.id
+        WHERE mi.date = ? AND LOWER(l.name) LIKE LOWER(?)
+        ORDER BY mi.period, mi.category, mi.name
+    """
+
+    c.execute(query, [date, f"%{location}%"])
+    rows = c.fetchall()
+    conn.close()
+
+    # Group by period
+    periods = {}
+    for row in rows:
+        period = row[1]
+        if period not in periods:
+            periods[period] = []
+
+        periods[period].append({
+            "name": row[0],
+            "category": row[2],
+            "calories": row[3],
+            "protein": row[4],
+            "dietary_tags": row[5].split(",") if row[5] else []
+        })
+
+    # Get hours for this location
+    hours_info = get_location_hours(location)
+
+    return {
+        "location": hours_info.get("location", location),
+        "date": date,
+        "hours": hours_info.get("hours"),
+        "status": hours_info.get("status"),
+        "periods": periods,
+        "total_items": len(rows)
+    }
+
+
 # Tool definitions for OpenAI function calling
 TOOL_DEFINITIONS = [
     {
@@ -891,6 +955,23 @@ TOOL_DEFINITIONS = [
                 "required": []
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_full_day_menu",
+            "description": "Get the COMPLETE menu for a dining location across ALL meal periods today. Use this when user asks to 'list', 'show', or 'see' the full menu at a location. Returns items grouped by Breakfast/Lunch/Dinner with hours. Do NOT use this for meal recommendations - use get_complete_meals instead.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "Dining hall name (e.g., 'Palladium', 'Third North', 'Downstein')"
+                    }
+                },
+                "required": ["location"]
+            }
+        }
     }
 ]
 
@@ -906,6 +987,7 @@ TOOL_FUNCTIONS = {
     "get_low_calorie_items": get_low_calorie_items,
     "get_location_hours": get_location_hours,
     "get_current_time": get_current_time,
+    "get_full_day_menu": get_full_day_menu,
 }
 
 
