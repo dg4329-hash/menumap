@@ -1,26 +1,24 @@
 """
-Generate PWA icons for MenuMap
+Generate PWA icons for CampusBite
 Run: python generate_icons.py
 Requires: pip install Pillow
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 def create_icon(size):
-    """Create a minimalist fork icon with gradient background"""
+    """Create CampusBite icon with deck color theme"""
     img = Image.new('RGBA', (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
 
     # Scale factor
     s = size / 512
 
-    # Draw rounded rectangle background with gradient approximation
-    # Using solid indigo color for simplicity
     corner_radius = int(108 * s)
 
-    # Background color (indigo)
-    bg_color = (99, 102, 241)  # #6366f1
+    # Background: forest green from deck (#2d6a4f)
+    bg_color = (45, 106, 79)  # #2d6a4f
 
-    # Draw rounded rectangle
+    # Draw rounded rectangle background
     draw.rounded_rectangle(
         [(0, 0), (size-1, size-1)],
         radius=corner_radius,
@@ -72,6 +70,16 @@ def create_icon(size):
         [(handle_x, handle_y), (handle_x + handle_width, handle_y + handle_height)],
         radius=int(24 * s),
         fill=white
+    )
+
+    # Small coral accent dot at bottom of handle
+    coral = (232, 93, 4)  # #e85d04
+    dot_x = int(256 * s)
+    dot_y = int(400 * s)
+    dot_r = int(16 * s)
+    draw.ellipse(
+        [(dot_x - dot_r, dot_y - dot_r), (dot_x + dot_r, dot_y + dot_r)],
+        fill=coral
     )
 
     return img
